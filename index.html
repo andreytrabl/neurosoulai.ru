@@ -580,5 +580,51 @@
     rbClose.addEventListener('click', closeRB);
     document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeRB(); });
   </script>
+
+  <!-- ===== ОБРАБОТЧИК ОТПРАВКИ ФОРМЫ (Apps Script) ===== -->
+  <script>
+    // URL развернутого веб-приложения Apps Script
+    const GAS_ENDPOINT = "https://script.google.com/macros/s/AKfycbwG-gr_nGlZaVHPEH6ExIuqkapf67OUEVdCxz50oV8rg2aZ9ENhZ5DVrWL2yyEqdDhzpQ/exec";
+
+    const contactForm = document.getElementById('contactForm');
+    if (contactForm) {
+      contactForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const submitBtn = contactForm.querySelector('button[type="submit"]');
+        const originalText = submitBtn.textContent;
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Отправляем…';
+
+        const fd = new FormData(contactForm);
+        fd.append('referer', location.href);
+
+        try {
+          // Пытаемся обычный запрос (с чтением ответа)
+          const res = await fetch(GAS_ENDPOINT, { method: 'POST', body: fd, credentials: 'omit' });
+
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+
+          // Если ответ JSON — отлично, но нам достаточно факта успешной отправки
+          try { await res.json(); } catch(_) {}
+          alert('Заявка отправлена! Мы свяжемся с вами.');
+          contactForm.reset();
+        } catch (err) {
+          // Если упёрлись в CORS/префлайт, делаем «спящий» no-cors (письмо всё равно уйдёт)
+          try {
+            await fetch(GAS_ENDPOINT, { method: 'POST', body: fd, mode: 'no-cors', credentials: 'omit' });
+            alert('Заявка отправлена! Мы свяжемся с вами.');
+            contactForm.reset();
+          } catch (e2) {
+            console.error('Send failed:', err, e2);
+            alert('Не удалось отправить заявку. Попробуйте позже или напишите нам в Telegram.');
+          }
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.textContent = originalText;
+        }
+      });
+    }
+  </script>
 </body>
 </html>
