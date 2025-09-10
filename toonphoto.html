@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Фото в стиле мультика — NeuroSoul AI</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Onest:wght@100..900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles/main.css" />
+
+  <style>
+    .crumb{display:inline-block;color:var(--muted);text-decoration:none;margin:14px 0 18px}
+    .crumb:hover{color:var(--ink)}
+
+    .service-layout{
+      display:grid;grid-template-columns:1.1fr .9fr;gap:44px;align-items:center;margin:8px 0 56px;
+    }
+
+    /* медиа-блок без подложек */
+    .ex-card{background:transparent;border-radius:0;box-shadow:none;padding:0}
+
+    .ex-slider{position:relative}
+    .ex-viewport{
+      width:100%;
+      aspect-ratio:1/1;
+      overflow:visible;
+      background:transparent;
+      display:grid; place-items:center;
+
+      /* чтобы свайп не ломал вертикальный скролл */
+      touch-action: pan-y;
+      user-select:none;
+      cursor:grab;
+    }
+    .ex-slider.is-dragging .ex-viewport{cursor:grabbing;}
+
+    .ex-viewport img{
+      display:block; width:100%; height:100%; object-fit:cover;
+      border-radius:14px;
+      pointer-events:none;
+      -webkit-user-drag:none;
+      transition:transform .18s ease;
+    }
+
+    .ex-arrow{
+      --s:38px; position:absolute; top:50%; transform:translateY(-50%);
+      width:var(--s); height:var(--s); border:0; border-radius:999px;
+      background:#fff; box-shadow:0 6px 16px rgba(0,0,0,.12); cursor:pointer; z-index:2;
+    }
+    .ex-arrow::before{
+      content:""; position:absolute; inset:0; margin:auto; width:12px; height:12px;
+      border-top:2px solid #333; border-right:2px solid #333; transform:rotate(45deg);
+    }
+    .ex-prev{left:10px}
+    .ex-prev::before{transform:rotate(225deg)}
+    .ex-next{right:10px}
+
+    .ex-dots{display:flex; gap:6px; justify-content:center; margin-top:10px}
+    .ex-dot{width:7px; height:7px; border-radius:999px; background:#d7d7d7}
+    .ex-dot.is-active{background:#222}
+
+    .s-title{margin:.3rem 0 .4rem;font-weight:900;font-size:clamp(22px,3vw,28px)}
+    .s-price{font-weight:800;margin:.1rem 0}
+    .s-deadline{font-weight:600;margin:.1rem 0 .8rem}
+    .s-desc{color:var(--muted);margin:0 0 1.2rem}
+    .s-cta{display:flex;gap:12px;flex-wrap:wrap}
+
+    @media (max-width:900px){
+      .service-layout{grid-template-columns:1fr;gap:18px}
+      .ex-card{order:1}
+    }
+  </style>
+</head>
+<body>
+  <!-- HEADER -->
+  <header class="site-header">
+    <div class="container nav">
+      <a class="brand" href="index.html" aria-label="NeuroSoul — на главную">
+        <img src="assets/logo.webp" alt="NeuroSoul logo">
+      </a>
+
+      <input id="nav-toggle" class="nav-toggle" type="checkbox" aria-hidden="true">
+      <label class="burger" for="nav-toggle" aria-label="Открыть меню" aria-controls="main-menu" aria-expanded="false">
+        <span></span>
+      </label>
+
+      <nav id="main-menu" class="menu" aria-label="Главное меню">
+        <a href="index.html#about"    onclick="document.getElementById('nav-toggle').checked=false">О нас</a>
+        <a href="index.html#services" onclick="document.getElementById('nav-toggle').checked=false">Услуги</a>
+        <a href="index.html#reviews"  onclick="document.getElementById('nav-toggle').checked=false">Отзывы</a>
+        <a href="index.html#contacts" onclick="document.getElementById('nav-toggle').checked=false">Контакты</a>
+        <a href="index.html#contacts" class="order-link" onclick="document.getElementById('nav-toggle').checked=false">Заказать</a>
+      </nav>
+
+      <a class="btn header-cta" href="index.html#contacts">Заказать</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="section">
+      <div class="container">
+        <a class="crumb" href="index.html#services">← Назад</a>
+
+        <div class="service-layout">
+          <!-- Слева: простой слайдер -->
+          <div class="ex-card">
+            <div class="ex-slider" id="exSlider" aria-roledescription="carousel">
+              <button class="ex-arrow ex-prev" aria-label="Предыдущее изображение"></button>
+              <div class="ex-viewport" id="exViewport">
+                <img id="exImage" src="assets/img/examples/toonphoto/ex-toonphoto-01.webp" alt="Пример стилизации 1" loading="eager">
+              </div>
+              <button class="ex-arrow ex-next" aria-label="Следующее изображение"></button>
+            </div>
+            <div class="ex-dots" id="exDots" aria-hidden="false"></div>
+          </div>
+
+          <!-- Справа: описание услуги -->
+          <div>
+            <h1 class="s-title">Фото в стиле мультика</h1>
+            <div class="s-price">от 300 ₽ за 1 фото</div>
+            <div class="s-deadline">Сроки: 1 день</div>
+
+            <div class="s-desc">
+              Стилизуем ваши фото под любимый мультфильм, аниме, комикс, живопись — возможно практически всё!
+            </div>
+
+            <div class="s-cta">
+              <a class="btn btn-primary" href="index.html#contacts">Заказать на сайте</a>
+              <a class="btn btn-tg" href="https://t.me/neurosoulai?direct" target="_blank" rel="noopener">Заказать в Telegram</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const images = [
+      "assets/img/examples/toonphoto/ex-toonphoto-01.webp",
+      "assets/img/examples/toonphoto/ex-toonphoto-02.webp",
+      "assets/img/examples/toonphoto/ex-toonphoto-03.webp",
+      "assets/img/examples/toonphoto/ex-toonphoto-04.webp",
+      "assets/img/examples/toonphoto/ex-toonphoto-05.webp"
+    ];
+    images.forEach(src => { const i = new Image(); i.src = src; });
+
+    const imgEl   = document.getElementById('exImage');
+    const dotsWrap= document.getElementById('exDots');
+    const slider  = document.getElementById('exSlider');
+    const viewport= document.getElementById('exViewport');
+
+    let idx = 0;
+
+    // точки
+    images.forEach((_, i) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'ex-dot' + (i===0 ? ' is-active' : '');
+      b.addEventListener('click', () => show(i));
+      dotsWrap.appendChild(b);
+    });
+
+    function show(i){
+      idx = (i + images.length) % images.length;
+      imgEl.src = images[idx];
+      imgEl.alt = `Пример стилизации ${idx+1}`;
+      [...dotsWrap.children].forEach((d, n) => d.classList.toggle('is-active', n === idx));
+    }
+
+    document.querySelector('.ex-prev').addEventListener('click', () => show(idx-1));
+    document.querySelector('.ex-next').addEventListener('click', () => show(idx+1));
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft') show(idx-1);
+      if (e.key === 'ArrowRight') show(idx+1);
+    });
+
+    /* ===== Свайп/drag (Pointer Events) — как в restoration.html ===== */
+    let pointerId = null, startX = 0, startY = 0, deltaX = 0;
+
+    function onDown(e){
+      pointerId = e.pointerId ?? 'mouse';
+      startX = e.clientX; startY = e.clientY; deltaX = 0;
+      slider.classList.add('is-dragging');
+      if (imgEl.style) imgEl.style.transition = 'none';
+      if (e.pointerId != null) viewport.setPointerCapture(e.pointerId);
+    }
+    function onMove(e){
+      if (pointerId === null) return;
+      if (e.pointerId != null && e.pointerId !== pointerId) return;
+      deltaX = e.clientX - startX;
+      const dY = Math.abs(e.clientY - startY);
+      if (Math.abs(deltaX) > dY) {
+        imgEl.style.transform = `translateX(${deltaX * 0.25}px)`;
+      }
+    }
+    function onUp(e){
+      if (pointerId === null || (e.pointerId != null && e.pointerId !== pointerId)) return;
+      if (e.pointerId != null) viewport.releasePointerCapture(e.pointerId);
+      slider.classList.remove('is-dragging');
+      imgEl.style.transition = 'transform .18s ease';
+      imgEl.style.transform = 'translateX(0)';
+
+      const dY = Math.abs(e.clientY - startY);
+      if (Math.abs(deltaX) > 50 && Math.abs(deltaX) > dY) {
+        show(deltaX > 0 ? idx-1 : idx+1);
+      }
+      pointerId = null;
+    }
+
+    viewport.addEventListener('pointerdown', onDown);
+    viewport.addEventListener('pointermove', onMove);
+    viewport.addEventListener('pointerup', onUp);
+    viewport.addEventListener('pointercancel', onUp);
+
+    // Горизонтальный wheel (трекпад)
+    viewport.addEventListener('wheel', (e) => {
+      if (Math.abs(e.deltaX) > Math.abs(e.deltaY) && Math.abs(e.deltaX) > 20) {
+        e.preventDefault();
+        show(e.deltaX > 0 ? idx+1 : idx-1);
+      }
+    }, { passive:false });
+  </script>
+</body>
+</html>

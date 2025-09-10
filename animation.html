@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Оживление фото — NeuroSoul AI</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Onest:wght@100..900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles/main.css" />
+
+  <!-- Предзагрузка демо-видео -->
+  <link rel="preload" as="video" href="assets/video/examples/animation/ex-animation-01.mp4">
+  <link rel="preload" as="video" href="assets/video/examples/animation/ex-animation-02.mp4">
+
+  <style>
+    .crumb{display:inline-block;color:var(--muted);text-decoration:none;margin:14px 0 18px}
+    .crumb:hover{color:var(--ink)}
+
+    .service-layout{
+      display:grid;grid-template-columns:1.1fr .9fr;gap:44px;align-items:center;margin:8px 0 56px;
+    }
+
+    /* медиа-блок без подложек */
+    .ex-card{background:transparent;border-radius:0;box-shadow:none;padding:0}
+
+    .ex-slider{position:relative}
+    .ex-viewport{
+      width:100%;
+      aspect-ratio:1/1;               /* как на restoration.html */
+      overflow:visible;
+      background:transparent;
+      display:grid; place-items:center;
+
+      touch-action: pan-y;            /* свайп не ломает вертикальный скролл */
+      user-select:none;
+      cursor:grab;
+    }
+    .ex-slider.is-dragging .ex-viewport{cursor:grabbing;}
+
+    .ex-viewport video{
+      display:block; width:100%; height:100%;
+      object-fit:contain;             /* показываем весь кадр */
+      border-radius:14px;
+      -webkit-user-drag:none;
+      transition:transform .18s ease; /* лёгкий возврат после drag */
+      background:#000;                /* аккуратные поля по краям */
+    }
+
+    .ex-arrow{
+      --s:38px; position:absolute; top:50%; transform:translateY(-50%);
+      width:var(--s); height:var(--s); border:0; border-radius:999px;
+      background:#fff; box-shadow:0 6px 16px rgba(0,0,0,.12); cursor:pointer; z-index:2;
+    }
+    .ex-arrow::before{
+      content:""; position:absolute; inset:0; margin:auto; width:12px; height:12px;
+      border-top:2px solid #333; border-right:2px solid #333; transform:rotate(45deg);
+    }
+    .ex-prev{left:10px}
+    .ex-prev::before{transform:rotate(225deg)}
+    .ex-next{right:10px}
+
+    .ex-dots{display:flex; gap:6px; justify-content:center; margin-top:10px}
+    .ex-dot{width:7px; height:7px; border-radius:999px; background:#d7d7d7}
+    .ex-dot.is-active{background:#222}
+
+    .s-title{margin:.3rem 0 .4rem;font-weight:900;font-size:clamp(22px,3vw,28px)}
+    .s-price{font-weight:800;margin:.1rem 0}
+    .s-deadline{font-weight:600;margin:.1rem 0 .8rem}
+    .s-desc{color:var(--muted);margin:0 0 1.2rem}
+    .s-cta{display:flex;gap:12px;flex-wrap:wrap}
+
+    @media (max-width:900px){
+      .service-layout{grid-template-columns:1fr;gap:18px}
+      .ex-card{order:1}
+    }
+  </style>
+</head>
+<body>
+  <!-- HEADER -->
+  <header class="site-header">
+    <div class="container nav">
+      <a class="brand" href="index.html" aria-label="NeuroSoul — на главную">
+        <img src="assets/logo.webp" alt="NeuroSoul logo">
+      </a>
+
+      <input id="nav-toggle" class="nav-toggle" type="checkbox" aria-hidden="true">
+      <label class="burger" for="nav-toggle" aria-label="Открыть меню" aria-controls="main-menu" aria-expanded="false">
+        <span></span>
+      </label>
+
+      <nav id="main-menu" class="menu" aria-label="Главное меню">
+        <a href="index.html#about"    onclick="document.getElementById('nav-toggle').checked=false">О нас</a>
+        <a href="index.html#services" onclick="document.getElementById('nav-toggle').checked=false">Услуги</a>
+        <a href="index.html#reviews"  onclick="document.getElementById('nav-toggle').checked=false">Отзывы</a>
+        <a href="index.html#contacts" onclick="document.getElementById('nav-toggle').checked=false">Контакты</a>
+        <a href="index.html#contacts" class="order-link" onclick="document.getElementById('nav-toggle').checked=false">Заказать</a>
+      </nav>
+
+      <a class="btn header-cta" href="index.html#contacts">Заказать</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="section">
+      <div class="container">
+        <a class="crumb" href="index.html#services">← Назад</a>
+
+        <div class="service-layout">
+          <!-- Слева: простой видеослайдер -->
+          <div class="ex-card">
+            <div class="ex-slider" id="exSlider" aria-roledescription="carousel">
+              <button class="ex-arrow ex-prev" aria-label="Предыдущее видео"></button>
+              <div class="ex-viewport" id="exViewport">
+                <video id="exVideo"
+                  src="assets/video/examples/animation/ex-animation-01.mp4"
+                  controls preload="metadata" playsinline
+                ></video>
+              </div>
+              <button class="ex-arrow ex-next" aria-label="Следующее видео"></button>
+            </div>
+            <div class="ex-dots" id="exDots" aria-hidden="false"></div>
+          </div>
+
+          <!-- Справа: описание услуги -->
+          <div>
+            <h1 class="s-title">Оживление фото</h1>
+            <div class="s-price">от 500 ₽ за 1 фото</div>
+            <div class="s-deadline">Сроки: 1–2 дня</div>
+
+            <div class="s-desc">
+              Оживим любое ваше фото: старое или новое, чёрно-белое или цветное,
+              низкого (тогда улучшим) и хорошего качества 🎨
+            </div>
+
+            <ul class="s-desc" style="list-style:none;padding:0;margin:0 0 1.2rem">
+              <li>— Уберём недостатки</li>
+              <li>— Раскрасим</li>
+              <li>— Повысим качество</li>
+              <li>— Подберём хороший формат</li>
+            </ul>
+
+            <div class="s-desc">Делаем через нейросети 🤖</div>
+
+            <div class="s-cta">
+              <a class="btn btn-primary" href="index.html#contacts">Заказать на сайте</a>
+              <a class="btn btn-tg" href="https://t.me/neurosoulai?direct" target="_blank" rel="noopener">Заказать в Telegram</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const videos = [
+      "assets/video/examples/animation/ex-animation-01.mp4",
+      "assets/video/examples/animation/ex-animation-02.mp4"
+    ];
+
+    const videoEl = document.getElementById('exVideo');
+    const dotsWrap= document.getElementById('exDots');
+    const slider  = document.getElementById('exSlider');
+    const viewport= document.getElementById('exViewport');
+
+    let idx = 0;
+
+    // точки
+    videos.forEach((_, i) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'ex-dot' + (i===0 ? ' is-active' : '');
+      b.addEventListener('click', () => show(i));
+      dotsWrap.appendChild(b);
+    });
+
+    function show(i){
+      idx = (i + videos.length) % videos.length;
+
+      // останавливаем текущее видео и сбрасываем src — стабильное переключение
+      try { videoEl.pause(); } catch(e){}
+      videoEl.removeAttribute('src');
+      videoEl.load();
+
+      videoEl.src = videos[idx];
+      videoEl.load();
+
+      [...dotsWrap.children].forEach((d, n) => d.classList.toggle('is-active', n === idx));
+    }
+
+    document.querySelector('.ex-prev').addEventListener('click', () => show(idx-1));
+    document.querySelector('.ex-next').addEventListener('click', () => show(idx+1));
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft') show(idx-1);
+      if (e.key === 'ArrowRight') show(idx+1);
+    });
+
+    /* ===== Свайп/drag (Pointer Events) ===== */
+    let pointerId = null, startX = 0, startY = 0, deltaX = 0;
+
+    function onDown(e){
+      pointerId = e.pointerId ?? 'mouse';
+      startX = e.clientX; startY = e.clientY; deltaX = 0;
+      slider.classList.add('is-dragging');
+      if (videoEl.style) videoEl.style.transition = 'none';
+      if (e.pointerId != null) viewport.setPointerCapture(e.pointerId);
+    }
+    function onMove(e){
+      if (pointerId === null) return;
+      if (e.pointerId != null && e.pointerId !== pointerId) return;
+      deltaX = e.clientX - startX;
+      const dY = Math.abs(e.clientY - startY);
+      if (Math.abs(deltaX) > dY) {
+        videoEl.style.transform = `translateX(${deltaX * 0.25}px)`;
+      }
+    }
+    function onUp(e){
+      if (pointerId === null || (e.pointerId != null && e.pointerId !== pointerId)) return;
+      if (e.pointerId != null) viewport.releasePointerCapture(e.pointerId);
+      slider.classList.remove('is-dragging');
+      videoEl.style.transition = 'transform .18s ease';
+      videoEl.style.transform = 'translateX(0)';
+
+      const dY = Math.abs(e.clientY - startY);
+      if (Math.abs(deltaX) > 50 && Math.abs(deltaX) > dY) {
+        show(deltaX > 0 ? idx-1 : idx+1);
+      }
+      pointerId = null;
+    }
+
+    viewport.addEventListener('pointerdown', onDown);
+    viewport.addEventListener('pointermove', onMove);
+    viewport.addEventListener('pointerup', onUp);
+    viewport.addEventListener('pointercancel', onUp);
+
+    // Горизонтальный wheel (трекпад)
+    viewport.addEventListener('wheel', (e) => {
+      if (Math.abs(e.deltaX) > Math.abs(e.deltaY) && Math.abs(e.deltaX) > 20) {
+        e.preventDefault();
+        show(e.deltaX > 0 ? idx+1 : idx-1);
+      }
+    }, { passive:false });
+  </script>
+</body>
+</html>
