@@ -141,7 +141,7 @@
       .rev-arrow{ --size:38px; }
     }
 
-    /* ====== THANK-YOU POPUP (новое) ====== */
+    /* ===== THANK-YOU POPUP (добавлено) ===== */
     #thanksModal[aria-hidden="true"]{ display:none; }
     #thanksModal{
       position:fixed; inset:0; z-index:1200;
@@ -149,7 +149,6 @@
     }
     .thanks-backdrop{
       position:absolute; inset:0; background:rgba(8,10,14,.46); backdrop-filter:saturate(120%) blur(4px);
-      transition:opacity .2s ease;
     }
     .thanks-dialog{
       position:relative; z-index:1;
@@ -196,8 +195,6 @@
       width:36px; height:36px; border-radius:999px; border:0; cursor:pointer;
       background:#f2f2f2; font-size:18px; line-height:1;
     }
-
-    /* Подгонка под «безрамочные» устройства */
     @supports (padding:max(0px)){
       .thanks-dialog{ padding:clamp(18px, 3vw, 28px) max(18px, env(safe-area-inset-right)) clamp(18px, 3vw, 28px) max(18px, env(safe-area-inset-left)); }
     }
@@ -469,7 +466,7 @@
     </div>
   </div>
 
-  <!-- THANK-YOU POPUP (новое) -->
+  <!-- THANK-YOU POPUP (добавлено) -->
   <div id="thanksModal" aria-hidden="true">
     <div class="thanks-backdrop" data-close="true"></div>
     <div class="thanks-dialog" role="dialog" aria-modal="true" aria-labelledby="thanksTitle" aria-describedby="thanksDesc">
@@ -660,43 +657,37 @@
     rbClose.addEventListener('click', closeRB);
     document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeRB(); });
 
-    /* ===== THANK-YOU POPUP logic (новое) ===== */
-    const thanks = document.getElementById('thanksModal');
+    /* ===== THANK-YOU POPUP логика (добавлено) ===== */
+    const thanksModal = document.getElementById('thanksModal');
     const thanksBtn = document.getElementById('thanksContinue');
-    let savedFormScroll = 0;
 
     function openThanks(){
-      // Блокируем скролл как в лайтбоксе отзывов
-      savedFormScroll = window.scrollY || document.documentElement.scrollTop;
-      document.body.style.top = `-${savedFormScroll}px`;
-      document.body.classList.add('body-lock');
-
-      thanks.setAttribute('aria-hidden','false');
-      // Фокус на основную кнопку
-      setTimeout(()=> thanksBtn?.focus?.(), 0);
+      thanksModal.setAttribute('aria-hidden','false');
+      setTimeout(()=>thanksBtn?.focus?.(), 0);
     }
     function closeThanks(){
-      thanks.setAttribute('aria-hidden','true');
-      document.body.classList.remove('body-lock');
-      document.body.style.top = '';
-      window.scrollTo(0, savedFormScroll);
+      thanksModal.setAttribute('aria-hidden','true');
     }
-
-    // Закрытия
-    thanks.addEventListener('click', (e)=>{
-      if (e.target?.dataset?.close === "true") closeThanks();
+    // Закрытие по фону/крестику/Esc
+    thanksModal.addEventListener('click', (e)=>{
+      if (e.target?.dataset?.close === 'true') closeThanks();
     });
-    document.addEventListener('keydown', (e) => {
-      if (thanks.getAttribute('aria-hidden') === 'false' && e.key === 'Escape') closeThanks();
+    document.addEventListener('keydown', (e)=>{
+      if (thanksModal.getAttribute('aria-hidden') === 'false' && e.key === 'Escape') closeThanks();
     });
-
-    // Кнопка «Продолжить»: возвращаем в раздел контактов
-    thanksBtn?.addEventListener('click', () => {
+    // Кнопка "Продолжить": возвращаем к разделу контактов
+    thanksBtn?.addEventListener('click', ()=>{
       closeThanks();
       if (location.hash !== '#contacts') location.hash = '#contacts';
-      // Для плавного скролла к форме, если пользователь далеко
-      const section = document.getElementById('contacts');
-      section?.scrollIntoView({ behavior:'smooth', block:'start' });
+      document.getElementById('contacts')?.scrollIntoView({behavior:'smooth', block:'start'});
+    });
+
+    // Открываем попап сразу по клику на кнопку отправки (не меняя обработчик формы)
+    document.addEventListener('click', (e)=>{
+      const btn = e.target.closest('#contactForm button[type="submit"]');
+      if (!btn) return;
+      // Показать окно благодарности сразу после нажатия
+      openThanks();
     });
   </script>
 
@@ -726,14 +717,14 @@
 
           // Если ответ JSON — отлично, но нам достаточно факта успешной отправки
           try { await res.json(); } catch(_) {}
+          alert('Заявка отправлена! Мы свяжемся с вами.');
           contactForm.reset();
-          openThanks();
         } catch (err) {
           // Если упёрлись в CORS/префлайт, делаем «спящий» no-cors (письмо всё равно уйдёт)
           try {
             await fetch(GAS_ENDPOINT, { method: 'POST', body: fd, mode: 'no-cors', credentials: 'omit' });
+            alert('Заявка отправлена! Мы свяжемся с вами.');
             contactForm.reset();
-            openThanks();
           } catch (e2) {
             console.error('Send failed:', err, e2);
             alert('Не удалось отправить заявку. Попробуйте позже или напишите нам в Telegram.');
