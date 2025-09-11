@@ -140,6 +140,67 @@
       .rev-carousel{ padding-inline:12px; }
       .rev-arrow{ --size:38px; }
     }
+
+    /* ====== THANK-YOU POPUP (новое) ====== */
+    #thanksModal[aria-hidden="true"]{ display:none; }
+    #thanksModal{
+      position:fixed; inset:0; z-index:1200;
+      display:grid; place-items:center;
+    }
+    .thanks-backdrop{
+      position:absolute; inset:0; background:rgba(8,10,14,.46); backdrop-filter:saturate(120%) blur(4px);
+      transition:opacity .2s ease;
+    }
+    .thanks-dialog{
+      position:relative; z-index:1;
+      width:min(560px, 92vw);
+      border-radius:20px;
+      background:#fff;
+      box-shadow:0 20px 44px rgba(0,0,0,.18);
+      padding:clamp(18px, 3vw, 28px);
+      font-family: var(--font, "Onest", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif);
+      text-align:center;
+      transform:translateY(6px) scale(.98);
+      animation: thanksIn .22s ease forwards;
+    }
+    @keyframes thanksIn{
+      to{ transform:translateY(0) scale(1); }
+    }
+    .thanks-title{
+      font-weight:900;
+      font-size:clamp(20px, 3.2vw, 28px);
+      line-height:1.2;
+      margin:0 0 8px;
+      color:var(--ink, #0b0b0b);
+      letter-spacing:.2px;
+    }
+    .thanks-text{
+      font-size:clamp(16px, 2.6vw, 18px);
+      color:var(--muted, #4b4b4b);
+      margin:0 0 16px;
+    }
+    .thanks-actions{ display:flex; justify-content:center; }
+    .thanks-btn{
+      appearance:none; border:0; cursor:pointer;
+      border-radius:14px;
+      padding:12px 18px;
+      font-weight:800;
+      font-size:16px;
+      line-height:1;
+      background:var(--primary, #111);
+      color:#fff;
+      box-shadow:0 10px 24px rgba(0,0,0,.14);
+    }
+    .thanks-close{
+      position:absolute; top:10px; right:10px;
+      width:36px; height:36px; border-radius:999px; border:0; cursor:pointer;
+      background:#f2f2f2; font-size:18px; line-height:1;
+    }
+
+    /* Подгонка под «безрамочные» устройства */
+    @supports (padding:max(0px)){
+      .thanks-dialog{ padding:clamp(18px, 3vw, 28px) max(18px, env(safe-area-inset-right)) clamp(18px, 3vw, 28px) max(18px, env(safe-area-inset-left)); }
+    }
   </style>
 </head>
 <body>
@@ -408,6 +469,19 @@
     </div>
   </div>
 
+  <!-- THANK-YOU POPUP (новое) -->
+  <div id="thanksModal" aria-hidden="true">
+    <div class="thanks-backdrop" data-close="true"></div>
+    <div class="thanks-dialog" role="dialog" aria-modal="true" aria-labelledby="thanksTitle" aria-describedby="thanksDesc">
+      <button class="thanks-close" aria-label="Закрыть" data-close="true">×</button>
+      <h3 id="thanksTitle" class="thanks-title">Спасибо за обращение!</h3>
+      <p id="thanksDesc" class="thanks-text">Свяжемся с вами в ближайшее время 💛</p>
+      <div class="thanks-actions">
+        <button id="thanksContinue" class="thanks-btn" type="button">Продолжить</button>
+      </div>
+    </div>
+  </div>
+
   <!-- MODAL услуг (без изменений) -->
   <div class="modal" id="serviceModal" aria-hidden="true" role="dialog" aria-labelledby="modalTitle">
     <div class="modal__backdrop"></div>
@@ -585,6 +659,45 @@
     rb.addEventListener('click', e=>{ if(e.target===rb) closeRB(); });
     rbClose.addEventListener('click', closeRB);
     document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeRB(); });
+
+    /* ===== THANK-YOU POPUP logic (новое) ===== */
+    const thanks = document.getElementById('thanksModal');
+    const thanksBtn = document.getElementById('thanksContinue');
+    let savedFormScroll = 0;
+
+    function openThanks(){
+      // Блокируем скролл как в лайтбоксе отзывов
+      savedFormScroll = window.scrollY || document.documentElement.scrollTop;
+      document.body.style.top = `-${savedFormScroll}px`;
+      document.body.classList.add('body-lock');
+
+      thanks.setAttribute('aria-hidden','false');
+      // Фокус на основную кнопку
+      setTimeout(()=> thanksBtn?.focus?.(), 0);
+    }
+    function closeThanks(){
+      thanks.setAttribute('aria-hidden','true');
+      document.body.classList.remove('body-lock');
+      document.body.style.top = '';
+      window.scrollTo(0, savedFormScroll);
+    }
+
+    // Закрытия
+    thanks.addEventListener('click', (e)=>{
+      if (e.target?.dataset?.close === "true") closeThanks();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (thanks.getAttribute('aria-hidden') === 'false' && e.key === 'Escape') closeThanks();
+    });
+
+    // Кнопка «Продолжить»: возвращаем в раздел контактов
+    thanksBtn?.addEventListener('click', () => {
+      closeThanks();
+      if (location.hash !== '#contacts') location.hash = '#contacts';
+      // Для плавного скролла к форме, если пользователь далеко
+      const section = document.getElementById('contacts');
+      section?.scrollIntoView({ behavior:'smooth', block:'start' });
+    });
   </script>
 
   <!-- ===== ОБРАБОТЧИК ОТПРАВКИ ФОРМЫ (Apps Script) ===== -->
@@ -613,14 +726,14 @@
 
           // Если ответ JSON — отлично, но нам достаточно факта успешной отправки
           try { await res.json(); } catch(_) {}
-          alert('Заявка отправлена! Мы свяжемся с вами.');
           contactForm.reset();
+          openThanks();
         } catch (err) {
           // Если упёрлись в CORS/префлайт, делаем «спящий» no-cors (письмо всё равно уйдёт)
           try {
             await fetch(GAS_ENDPOINT, { method: 'POST', body: fd, mode: 'no-cors', credentials: 'omit' });
-            alert('Заявка отправлена! Мы свяжемся с вами.');
             contactForm.reset();
+            openThanks();
           } catch (e2) {
             console.error('Send failed:', err, e2);
             alert('Не удалось отправить заявку. Попробуйте позже или напишите нам в Telegram.');
